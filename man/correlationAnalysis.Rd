@@ -19,6 +19,13 @@ A function to perform correlation analysis for expression data, to see if the sh
 A function to perform correlation analysis for expression data, to see if the shared targets of two tf have significantly higher correlations.
 }
 \examples{
-1
+\dontrun{
+dataMatrix3<-prepareGeoData(GEO="GSE54698",geneSymColumnName="GENE_SYMBOL")
+dataMatrix3Used1<-dataMatrix3[,1:12]
+dataMatrix3Used2<-dataMatrix3[,c(13:24)]
+tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HELAS3"),]
+correlationResult3New1<-correlationAnalysis(dataMatrix3Used1,pairs2Target=tfPairsUsed,n=100)
+correlationResult3New2<-correlationAnalysis(dataMatrix3Used2,pairs2Target=tfPairsUsed,n=100)
+}
 }
 

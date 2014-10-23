@@ -33,3 +33,5 @@ After you have installed FunTFPair package. You can enter R and use following R 
 	example(differentialAnalysis)
 	#Examples for correlation analysis based functional TF pair identification
 	example(correlationAnalysis)
+	#Examples for functional TF Network visualization
+	example(networkVis)

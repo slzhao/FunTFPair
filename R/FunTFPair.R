@@ -1,3 +1,4 @@
+#' @import Biobase
 #' @name pairs2TargetRemDup
 #' @title transcription factors pairs and their targets from ENCODE data.
 #' @description This data set is a data.frame with 9 columns. The first 6 columns were from the sTable 3 of reference. The last 3 columns were targets for TF1 and TF2, TF1 only, TF2 only.
@@ -223,7 +224,14 @@ enrichTarget<-function(limmaResult,pairs2Target=pairs2TargetRemDup,pCut=0.05,fCu
 ##' @param pairs2Target the targets of tf pairs
 ##' @param n the number of genes selected for prior comparison, to make the analysis faster
 ##' @export
-##' @examples 1
+##' @examples \dontrun{
+##' dataMatrix3<-prepareGeoData(GEO="GSE54698",geneSymColumnName="GENE_SYMBOL")
+##' dataMatrix3Used1<-dataMatrix3[,1:12]
+##' dataMatrix3Used2<-dataMatrix3[,c(13:24)]
+##' tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HELAS3"),]
+##' correlationResult3New1<-correlationAnalysis(dataMatrix3Used1,pairs2Target=tfPairsUsed,n=100)
+##' correlationResult3New2<-correlationAnalysis(dataMatrix3Used2,pairs2Target=tfPairsUsed,n=100)
+##' }
 correlationAnalysis<-function(expression,pairs2Target=pairs2TargetRemDup,n=300) {
 	shareTargets<-strsplit(pairs2Target[,7]," ")
 	tf1OnlyTargets<-strsplit(pairs2Target[,8]," ")
@@ -234,7 +242,7 @@ correlationAnalysis<-function(expression,pairs2Target=pairs2TargetRemDup,n=300) 
 	temp3<-(unique(unlist(tf2OnlyTargets)))
 	temp4<-intersect(row.names(expression),c(temp1,temp2,temp3))
 	if (length(temp4)<=10) {
-		stop(paste0("[tfPairIdentification] There are only ",length(temp4)," genes overlap between TF targets and expression dataset. Please check the rownames of expression dataset\n"))
+		stop(paste0("[FunTFPair] There are only ",length(temp4)," genes overlap between TF targets and expression dataset. Please check the rownames of expression dataset\n"))
 	}
 	expressionTarget<-expression[temp4,]
 	expressionTargetCor<-cor(t(expressionTarget))
@@ -289,11 +297,11 @@ correlationAnalysis<-function(expression,pairs2Target=pairs2TargetRemDup,n=300) 
 
 ##' networkVis
 ##' 
-##' A function to perform correlation analysis for expression data, to see if the shared targets of two tf have significantly higher correlations.
+##' A function to perform functional TF network visualization
 ##' 
-##' A function to perform correlation analysis for expression data, to see if the shared targets of two tf have significantly higher correlations.
+##' A function to perform functional TF network visualization
 ##' 
-##' @param result the expression matrix, can be the result of \code{\link{prepareGeoData}}.
+##' @param result the result of TF pairs identification, can be the result of \code{\link{differentialAnalysis}} or \code{\link{correlationAnalysis}}.
 ##' @param pCut the p value cutoff for genes used in network visualization
 ##' @import igraph
 ##' @export

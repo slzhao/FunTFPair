@@ -6,15 +6,15 @@
 networkVis(result, pCut = 0.05)
 }
 \arguments{
-\item{result}{the expression matrix, can be the result of \code{\link{prepareGeoData}}.}
+\item{result}{the result of TF pairs identification, can be the result of \code{\link{differentialAnalysis}} or \code{\link{correlationAnalysis}}.}
 
 \item{pCut}{the p value cutoff for genes used in network visualization}
 }
 \description{
-A function to perform correlation analysis for expression data, to see if the shared targets of two tf have significantly higher correlations.
+A function to perform functional TF network visualization
 }
 \details{
-A function to perform correlation analysis for expression data, to see if the shared targets of two tf have significantly higher correlations.
+A function to perform functional TF network visualization
 }
 \examples{
 \dontrun{
