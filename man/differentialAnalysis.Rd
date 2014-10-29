@@ -25,7 +25,7 @@ differentialAnalysis(x, groups, contrasts, LogC = NULL,
 A wrapper for function performLimma and enrichTarget.
 }
 \details{
-A function to perform limma analysis and then find the enrichment of target genes.
+A function to perform differential analysis for expression data, to see if the shared targets of two tf were significantly changed between two conditions.
 }
 \examples{
 \dontrun{
@@ -33,6 +33,8 @@ dataMatrix<-prepareGeoData(GEO="GDS2213")
 #use TF pairs in HEPG2 cell only
 tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HEPG2"),]
 enrichTargetResult<-differentialAnalysis(dataMatrix,groups=c(rep("untreated",4),rep("aza",4),rep("TSA",4),rep("azaAndTSA",4)),contrasts=c("aza-untreated","TSA-untreated","azaAndTSA-untreated"),pairs2Target=tfPairsUsed)
+enrichTargetResultNetwork1<-networkVis(enrichTargetResult[[1]])
+enrichTargetResultNetwork3<-networkVis(enrichTargetResult[[3]])
 }
 }
 

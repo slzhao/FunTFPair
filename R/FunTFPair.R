@@ -132,7 +132,7 @@ autoLog2<-function(x,LogC) {
 ##' 
 ##' A wrapper for function performLimma and enrichTarget.
 ##' 
-##' A function to perform limma analysis and then find the enrichment of target genes.
+##' A function to perform differential analysis for expression data, to see if the shared targets of two tf were significantly changed between two conditions.
 ##' 
 ##' @inheritParams performLimma
 ##' @inheritParams enrichTarget
@@ -142,6 +142,8 @@ autoLog2<-function(x,LogC) {
 ##' #use TF pairs in HEPG2 cell only 
 ##' tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HEPG2"),]
 ##' enrichTargetResult<-differentialAnalysis(dataMatrix,groups=c(rep("untreated",4),rep("aza",4),rep("TSA",4),rep("azaAndTSA",4)),contrasts=c("aza-untreated","TSA-untreated","azaAndTSA-untreated"),pairs2Target=tfPairsUsed)
+##' enrichTargetResultNetwork1<-networkVis(enrichTargetResult[[1]])
+##' enrichTargetResultNetwork3<-networkVis(enrichTargetResult[[3]])
 ##' }
 differentialAnalysis<-function(x,groups,contrasts,LogC=NULL,pairs2Target=pairs2TargetRemDup,pCut=0.05,fCut=log2(1.5)) {
 	limmaResult<-performLimma(x,groups=groups,contrasts=contrasts)
@@ -231,6 +233,8 @@ enrichTarget<-function(limmaResult,pairs2Target=pairs2TargetRemDup,pCut=0.05,fCu
 ##' tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HELAS3"),]
 ##' correlationResult3New1<-correlationAnalysis(dataMatrix3Used1,pairs2Target=tfPairsUsed,n=100)
 ##' correlationResult3New2<-correlationAnalysis(dataMatrix3Used2,pairs2Target=tfPairsUsed,n=100)
+##' correlationResultNew1Network<-networkVis(correlationResult3New1)
+##' correlationResultNew2Network<-networkVis(correlationResult3New2)
 ##' }
 correlationAnalysis<-function(expression,pairs2Target=pairs2TargetRemDup,n=300) {
 	shareTargets<-strsplit(pairs2Target[,7]," ")
@@ -372,14 +376,26 @@ networkVis<-function(result,pCut=0.05) {
 	#networkVis
 #	require(igraph)
 	g <- graph.data.frame(networkList$network, directed=F, vertices=cbind(row.names(networkList$nodes),networkList$nodes))
-	V(g)$size<-data2range(as.numeric(V(g)$"nodesP"),5,20)
+#	V(g)$size<-data2range(as.numeric(V(g)$"nodesP"),5,20)
+	cateNodeSize<-data2cate(as.numeric(V(g)$"nodesP"),cate=c(5,10,15,20))
+	V(g)$size<-cateNodeSize$cate
 	E(g)$width<-data2range(E(g)$"p.shareTargets",1,5)
-	plot.igraph(g)
+	plot.igraph(g,vertex.frame.color=NA,vertex.label.degree=pi,vertex.label.dist=1)
+#	legend("topright",legend=cateNodeSize$levels,bty="n",pch=16,cex=1:4)
 	return(networkList)
 }
 
 data2range<-function(x,minNew=0,maxNew=1) {
 	(x-min(x))/(max(x)-min(x))*(maxNew-minNew)+minNew
+}
+
+data2cate<-function(x,breaks,cate) {
+	if (missing(breaks)) {
+		breaks<-c(min(x),min(x)+(max(x)-min(x))*1/4,min(x)+(max(x)-min(x))*2/4,min(x)+(max(x)-min(x))*3/4,max(x))
+	}
+	temp<-cut(x,breaks=breaks,include.lowest=T)
+	result<-cate[temp]
+	return(list(cate=result,levels=levels(temp)))
 }
 
 pkgInfo<-function(...) {

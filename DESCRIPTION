@@ -1,8 +1,8 @@
 Package: FunTFPair
 Type: Package
 Title: FunTFPair
-Version: 0.0.9
-Date: 2014-10-23
+Version: 0.1.0
+Date: 2014-10-29
 Author: Shilin Zhao, Qi Liu, Yu Shyr
 Maintainer: Shilin Zhao <zhaoshilin@gmail.com>
 Description: FunTFPair package provides an easy pipline for identification of

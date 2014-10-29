@@ -1,8 +1,10 @@
 FunTFPair
 ============
 * [Introduction](#Introduction)
+* [Required packages](#require)
 * [Download and install](#download)
-* [Example](#example)
+* [Browse vignette](#vignette)
+* [Examples](#example)
 
 <a name="Introduction"/>
 # Introduction #
@@ -11,27 +13,42 @@ Summary: Transcription factors (TFs) are fundamental regulators of gene expressi
 
 Availability and Implementation: FunTFPair is implemented in R language.  The source code is provided at https://github.com/slzhao/FunTFPair. A more detailed vignette is also released along the package.
 
+<a name="require"/>
+# Required packages #
+FunTFPair package requires some other R packages, including limma, biomaRt, GEOquery and igraph. If you haven't installed them in your computer, you can use the following R codes to install them:
+	
+	#Running the following codes in your R	
+	install.packages("igraph")
+	source("http://bioconductor.org/biocLite.R")
+	biocLite(pkgs=c("limma","biomaRt","GEOquery"))
+
 <a name="download"/>
 # Download and install #
-You can download and install FunTFPair package from [github](https://github.com/slzhao/FunTFPair) by the following commands.
+You can download and install FunTFPair package from [github](https://github.com/slzhao/FunTFPair) by the following R codes.
 
 	#Running the following codes in your R
 	library(devtools)
     install_github("slzhao/FunTFPair")
 
+<a name="vignette"/>
+# Browse vignette #
+A vignette, which included introduction for functions, executable examples and description for TF cooperative network result,  was also provided with this package. You can use the following R codes to browse it:
+
+	#View the vignette
+	browseVignettes("FunTFPair")
+
 <a name="example"/>
-# Example #
+# Examples #
 After you have installed FunTFPair package. You can enter R and use following R codes to see the examples for it.
 	
+
 	#Load package
 	library("FunTFPair")
-	#View help files
-	?prepareGeoData
 	#Examples for GEO data preparation
 	example(prepareGeoData)
 	#Examples for differential analysis based functional TF pair identification
-	example(differentialAnalysis)
+	example(differentialAnalysis,run.dontrun=TRUE)
 	#Examples for correlation analysis based functional TF pair identification
-	example(correlationAnalysis)
+	example(correlationAnalysis,run.dontrun=TRUE)
 	#Examples for functional TF Network visualization
-	example(networkVis)
+	example(networkVis,run.dontrun=TRUE)

@@ -26,6 +26,8 @@ dataMatrix3Used2<-dataMatrix3[,c(13:24)]
 tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HELAS3"),]
 correlationResult3New1<-correlationAnalysis(dataMatrix3Used1,pairs2Target=tfPairsUsed,n=100)
 correlationResult3New2<-correlationAnalysis(dataMatrix3Used2,pairs2Target=tfPairsUsed,n=100)
+correlationResultNew1Network<-networkVis(correlationResult3New1)
+correlationResultNew2Network<-networkVis(correlationResult3New2)
 }
 }
 
