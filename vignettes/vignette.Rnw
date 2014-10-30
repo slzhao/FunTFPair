@@ -1,5 +1,5 @@
 % \VignetteEngine{knitr::knitr} 
-% \VignetteIndexEntry{heatmap3}
+% \VignetteIndexEntry{FunTFPair}
 \documentclass[12pt]{article}
 \textwidth 6.75in
 \textheight 9.5in
@@ -16,8 +16,7 @@
 }
 
 \begin{document}
-\title{Introduction for heatmap3 package}
-\author{Shilin Zhao}
+\title{Introduction for FunTFPair package}
 \maketitle
 \tableofcontents
 
@@ -25,51 +24,43 @@
 options(width=58)
 @
 
-\section{Example}
-Simulate a gene expression data set with 40 probes and 25 samples. These samples are divided into 3 groups, 5 in control group, 10 in treatment A and 10 in treatment B group. We will use the groups as categorical phenotype and we assume there is one continuous phenotype. Then we will annotate the two phenotypes in heatmap result.
+\section{Introduction}
+Summary: Transcription factors (TFs) are fundamental regulators of gene expression and generally function in a complex and cooperative manner. Identifying context-dependent cooperative TFs is essential for understanding how cells respond to environmental change. The huge amount of various omics data currently available, providing genome-wide physical binding and functional effect information about transcription, holds a great opportunity to study TF cooperativity. Here we developed an R package, FunTFPair, which provides an easy and powerful way to identify condition-specific TF pairs by integrating transcription factor binding sites from ENCODE and gene expression profiles from GEO. Users only need to provide GEO ID that they are interested in. FunTFPair will automatically retrieve the expression profiles of the input GEO ID, get TF targets from ENCODE, and identify TF pairs whose common targets show statistically significant differences under changed experimental conditions or exhibit coordinated transcription in a specific condition. The functional TF pairs and their relative importance will be reported in a TF cooperation network. Two datasets from GEO are used as examples to demonstrate the usage and the reliability of the package.
 
-Here we provided two samples:
-The first example is simple. It generated the color bar as lengend, ploted side color bars, didn't plot row dendrogram.
-The second example ploted legend for row side color bars, ploted row side color bars with two columns, texted labels with specified colors, ploted column side phenotype annotation. And we provided a cutoff height then the samples will be cut into different clusters by the cutoff.  And statistic tests for annotations in different groups will be performed and the result will be returned.
-<<heatmap3Example, tidy=T,warning=FALSE>>=
-library(heatmap3)
-example(heatmap3)
-@
 
-\section{Highlights}
+Availability and Implementation: FunTFPair is implemented in R language.  The source code is provided at https://github.com/slzhao/FunTFPair. A more detailed vignette is also released along the package.
 
+\section{Functions in the package}
 \begin{itemize}
-  \item Completely compatible with the original R function heatmap. You don't need to learn anything new or change your old commands to use it.
-  \item Provides highly customizable function interface so that the users can use their own functions to generate legend or side annotation. And two convenient example functions were also provided. 
-  \item Provides a height cutoff so that the samples will be cut into different clusters by the cutoff and labeled by different colors. And then statistic tests for the distribution of annotations in different clusters will be performed. 
-  \item More convenient coloring features: Provides color legend for the input matrix automatically. A more fancy color series is set as default color. You can balance the colors in color legend so that you can ensure the median color will represent the 0 value.
-  \item More powerful labeling features: The labels in axis could be labeled with colors. The side color bars support more than one column of colors.
-  \item The color legend, column and row side color bars can exist in the same figure, which can't be done in other heatmap compatible packages.
-  \item Improvement in parameters: Pearson correlation is set as default method; the agglomeration method for clustering now can be specified; the input values can be transformed into matrix automatically if it is a data.frame.
+  \item \emph{prepareGeoData}: A function to download GDS or GSE data and convert ID if needed;
+  \item \emph{differentialAnalysis}: A function to perform differential analysis and then find the enrichment of target genes;
+  \item \emph{correlationAnalysis}: A function to perform correlation analysis for expression data, to see if the shared targets of two tf were significantly changed between two conditions;
+  \item \emph{networkVis}: A function to perform functional TF network visualization;
 \end{itemize}
 
-\section{Usage}
-The main function is heatmap3, which was generate form the R function heatmap. So it is completely compatible with the original R function heatmap. You can use your commands for heatmap in heatmap3 as well. And you can use ?heatmap3 to get help for its new parameters. Here I just listed some of the new parameters for your information.
-\begin{itemize}
-  \item legendfun: function used to generate legend in top left of the figure. More details will be discussed below.
-  \item ColSideFun and ColSideAnn: function used to generate annotation and labeling figure in column side. The users can use any plot functions to generate their own figure. More details will be discussed below.
-  \item ColSideCut: the value to be used in cutting coloum dendrogram. The dendrogram and annotation will be divided into different parts and labeled respectively.
-  \item method: the agglomeration method to be used by hclust function.
-  \item ColAxisColors, RowAxisColors: integer indicating which column of ColSideColors or RowSideColors will be used as colors for labels in axis.
-  \item showColDendro, showRowDendro: logical indicating if the column or row dendrogram should be plotted.
-\end{itemize}
 
-A very important new feature in heatmap3 is the legendfun and ColSideFun parameter. You can generate your own legend in the top left of the figure by legendfun. And generate your own sample annotation in column side. Here we provided a function called showLegend as an example. 
-<<showLegend, tidy=T, eval=T>>=
-library(heatmap3)
-showLegend
+\section{Example for differential analysis based functional TF pairs identification}
+Here we used one dataset (GDS2213) profiles gene expression of HepG2 cells treated by 5-aza-2'-deoxycytidine (5-aza-dC), trichostatin A (TSA) or both, as an example of differential analysis-based functional TF pairs identification. The gene expression profiles under three kinds of treatment were compared with those in the control group, respectively. As a result, 24 TF pairs, involving 8 TFs,  were identified to be functionally important under the treatment of 5-aza-dC, which inhibit DNA methylation. Consistently, most of TFs has been reported to be influenced by DNA methylation. More interestingly, HDAC2, an important histone deacetylase, joined the functional TF network when TSA, inhibitor of histone decetylation, was added.
+
+<<differentialExample, tidy=TRUE,cache=TRUE,message=FALSE,results='hide'>>=
+library(FunTFPair)
+#Download GEO dataset
+dataMatrix<-prepareGeoData(GEO="GDS2213")
+#Choose the TF pairs in HEPG2 cells
+tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HEPG2"),]
+#Differential analysis based functional TF pairs identification 
+enrichTargetResult<-differentialAnalysis(dataMatrix,groups=c(rep("untreated",4),rep("aza",4),rep("TSA",4),rep("azaAndTSA",4)),contrasts=c("aza-untreated","TSA-untreated","azaAndTSA-untreated"),pairs2Target=tfPairsUsed)
+#Network visualization for aza vs untreated
+enrichTargetResultNetwork1<-networkVis(enrichTargetResult[[1]])
+#Network visualization for azaAndTSA vs untreated
+enrichTargetResultNetwork3<-networkVis(enrichTargetResult[[3]])
 @
-This function is very simple. It first generates a empty figure and then uses the R function legend to generate legend. So you can simplely write your own function to show legend or something else in the top left of the figure. Here is an example for showLegend function.
-<<showLegendExample, tidy=T>>=
-example(showLegend)
-@
-We also provided a showAnn function as an example to show column side annotation.
-<<showAnnExample, tidy=T>>=
-example(showAnn)
+
+Here the size of nodes indicated the importance of the TF in the cooprative network; while the width of the edges between pairs indicated the association between two TFs, which is the negative log 10 p value for the enrichement of shared targets in significantly changed genes.
+
+\section{Example for correlation analysis based functional TF pairs identification}
+You can also use \emph{correlationAnalysis} function to perform correlation analysis based functional TF pairs identification. THe example codes can be viewed by following R codes.
+<<correlationExample, tidy=TRUE,eval=FALSE>>=
+example(correlationAnalysis,run.dontrun=TRUE)
 @
 \end{document}

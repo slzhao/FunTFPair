@@ -27,6 +27,7 @@ FunTFPair package requires some other R packages, including limma, biomaRt, GEOq
 You can download and install FunTFPair package from [github](https://github.com/slzhao/FunTFPair) by the following R codes.
 
 	#Running the following codes in your R
+	install.packages("devtools")
 	library(devtools)
     install_github("slzhao/FunTFPair")
 
@@ -39,16 +40,18 @@ A vignette, which included introduction for functions, executable examples and d
 
 <a name="example"/>
 # Examples #
-After you have installed FunTFPair package. You can enter R and use following R codes to see the examples for it.
+After you have installed FunTFPair package. You can enter R and use following R codes to perform the examples for it.
 	
 
 	#Load package
 	library("FunTFPair")
-	#Examples for GEO data preparation
-	example(prepareGeoData)
-	#Examples for differential analysis based functional TF pair identification
-	example(differentialAnalysis,run.dontrun=TRUE)
-	#Examples for correlation analysis based functional TF pair identification
-	example(correlationAnalysis,run.dontrun=TRUE)
-	#Examples for functional TF Network visualization
-	example(networkVis,run.dontrun=TRUE)
+	#Download GEO dataset
+	dataMatrix<-prepareGeoData(GEO="GDS2213")
+	#Choose the TF pairs in HEPG2 cells
+	tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HEPG2"),]
+	#Differential analysis based functional TF pairs identification 
+	enrichTargetResult<-differentialAnalysis(dataMatrix,groups=c(rep("untreated",4),rep("aza",4),rep("TSA",4),rep("azaAndTSA",4)),contrasts=c("aza-untreated","TSA-untreated","azaAndTSA-untreated"),pairs2Target=tfPairsUsed)
+	#Network visualization for aza vs untreated
+	enrichTargetResultNetwork1<-networkVis(enrichTargetResult[[1]])
+	#Network visualization for azaAndTSA vs untreated
+	enrichTargetResultNetwork3<-networkVis(enrichTargetResult[[3]])
