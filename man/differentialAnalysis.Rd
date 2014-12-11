@@ -29,11 +29,15 @@ A function to perform differential analysis for expression data, to see if the s
 }
 \examples{
 \dontrun{
+#Download GEO dataset
 dataMatrix<-prepareGeoData(GEO="GDS2213")
 #use TF pairs in HEPG2 cell only
 tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HEPG2"),]
+#Differential analysis
 enrichTargetResult<-differentialAnalysis(dataMatrix,groups=c(rep("untreated",4),rep("aza",4),rep("TSA",4),rep("azaAndTSA",4)),contrasts=c("aza-untreated","TSA-untreated","azaAndTSA-untreated"),pairs2Target=tfPairsUsed)
+#Network visualization for aza vs untreated
 enrichTargetResultNetwork1<-networkVis(enrichTargetResult[[1]])
+#Network visualization for azaAndTSA vs untreated
 enrichTargetResultNetwork3<-networkVis(enrichTargetResult[[3]])
 }
 }

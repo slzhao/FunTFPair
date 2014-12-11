@@ -152,11 +152,15 @@ autoLog2<-function(x,LogC) {
 ##' @inheritParams enrichTarget
 ##' @export
 ##' @examples \dontrun{
+##' #Download GEO dataset
 ##' dataMatrix<-prepareGeoData(GEO="GDS2213")
 ##' #use TF pairs in HEPG2 cell only 
 ##' tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HEPG2"),]
+##' #Differential analysis
 ##' enrichTargetResult<-differentialAnalysis(dataMatrix,groups=c(rep("untreated",4),rep("aza",4),rep("TSA",4),rep("azaAndTSA",4)),contrasts=c("aza-untreated","TSA-untreated","azaAndTSA-untreated"),pairs2Target=tfPairsUsed)
+##' #Network visualization for aza vs untreated
 ##' enrichTargetResultNetwork1<-networkVis(enrichTargetResult[[1]])
+##' #Network visualization for azaAndTSA vs untreated
 ##' enrichTargetResultNetwork3<-networkVis(enrichTargetResult[[3]])
 ##' }
 differentialAnalysis<-function(x,groups,contrasts,LogC=NULL,pairs2Target=pairs2TargetRemDup,pCut=0.05,fCut=log2(1.5)) {
@@ -245,13 +249,18 @@ enrichTarget<-function(limmaResult,pairs2Target=pairs2TargetRemDup,pCut=0.05,fCu
 ##' @param n the number of genes selected for prior comparison, to make the analysis faster
 ##' @export
 ##' @examples \dontrun{
+##' #Download GEO dataset
 ##' dataMatrix3<-prepareGeoData(GEO="GSE54698",geneSymColumnName="GENE_SYMBOL")
 ##' dataMatrix3Used1<-dataMatrix3[,1:12]
 ##' dataMatrix3Used2<-dataMatrix3[,c(13:24)]
+##' #Choose the TF pairs in HELA cells
 ##' tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HELAS3"),]
+##' #Correlation analysis
 ##' correlationResult3New1<-correlationAnalysis(dataMatrix3Used1,pairs2Target=tfPairsUsed,n=100)
 ##' correlationResult3New2<-correlationAnalysis(dataMatrix3Used2,pairs2Target=tfPairsUsed,n=100)
+##' #Network visualization for control samples
 ##' correlationResultNew1Network<-networkVis(correlationResult3New1)
+##' #Network visualization for infected samples
 ##' correlationResultNew2Network<-networkVis(correlationResult3New2)
 ##' }
 correlationAnalysis<-function(expression,pairs2Target=pairs2TargetRemDup,n=300) {
