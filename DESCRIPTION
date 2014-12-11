@@ -1,8 +1,8 @@
 Package: FunTFPair
 Type: Package
 Title: FunTFPair
-Version: 0.1.0
-Date: 2014-10-29
+Version: 0.2.0
+Date: 2014-12-09
 Author: Shilin Zhao, Qi Liu, Yu Shyr
 Maintainer: Shilin Zhao <zhaoshilin@gmail.com>
 Description: FunTFPair package provides an easy pipline for identification of
@@ -17,4 +17,10 @@ Imports:
     limma,
     biomaRt,
     GEOquery,
-    igraph
+    annotate,
+    igraph,
+    RColorBrewer
+VignetteBuilder: knitr
+Suggests:
+    BiocStyle,
+    knitr

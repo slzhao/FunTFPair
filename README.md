@@ -20,7 +20,7 @@ FunTFPair package requires some other R packages, including limma, biomaRt, GEOq
 	#Running the following codes in your R	
 	install.packages("igraph")
 	source("http://bioconductor.org/biocLite.R")
-	biocLite(pkgs=c("limma","biomaRt","GEOquery"))
+	biocLite(pkgs=c("limma","biomaRt","GEOquery","annotate"))
 
 <a name="download"/>
 # Download and install #
@@ -45,13 +45,34 @@ After you have installed FunTFPair package. You can enter R and use following R 
 
 	#Load package
 	library("FunTFPair")
+	
+    ###############################
+    #Differential analysis based functional TF pairs identification
+    ############################## 
 	#Download GEO dataset
 	dataMatrix<-prepareGeoData(GEO="GDS2213")
 	#Choose the TF pairs in HEPG2 cells
 	tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HEPG2"),]
-	#Differential analysis based functional TF pairs identification 
+	#Differential analysis
 	enrichTargetResult<-differentialAnalysis(dataMatrix,groups=c(rep("untreated",4),rep("aza",4),rep("TSA",4),rep("azaAndTSA",4)),contrasts=c("aza-untreated","TSA-untreated","azaAndTSA-untreated"),pairs2Target=tfPairsUsed)
 	#Network visualization for aza vs untreated
 	enrichTargetResultNetwork1<-networkVis(enrichTargetResult[[1]])
 	#Network visualization for azaAndTSA vs untreated
 	enrichTargetResultNetwork3<-networkVis(enrichTargetResult[[3]])
+	
+    ###############################
+    #Correlation analysis based functional TF pairs identification
+    ##############################
+    #Download GEO dataset
+    dataMatrix<-prepareGeoData(GEO="GSE54698",geneSymColumnName="GENE_SYMBOL")
+    dataMatrixUsed1<-dataMatrix[,1:12]
+    dataMatrixUsed2<-dataMatrix[,c(13:24)]
+    #Choose the TF pairs in HELA cells
+    tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HELAS3"),]
+    #Correlation analysis
+    correlationResult1<- correlationAnalysis(dataMatrixUsed1,pairs2Target=tfPairsUsed,n=100)
+    correlationResult2<-   correlationAnalysis(dataMatrixUsed2,pairs2Target=tfPairsUsed,n=100)
+    #Network visualization for control samples
+    correlationResultNew1Network<-networkVis(correlationResult1)
+    #Network visualization for infected samples
+    correlationResultNew2Network<-networkVis(correlationResult2)

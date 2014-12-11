@@ -1,3 +1,17 @@
+2014-12-09
+FunTFPair 0.2.0:
+ * More robust for different formats of GEO datasets;
+ * Vignette was improved;
+
+2014-11-13
+FunTFPair 0.1.2:
+ * networkVis function was improved;
+ * Vignette was improved;
+
+2014-10-31
+FunTFPair 0.1.1:
+ * networkVis function was improved;
+ 
 2014-10-29
 FunTFPair 0.1.0:
  * networkVis function was improved;

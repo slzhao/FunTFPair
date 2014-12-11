@@ -3,12 +3,17 @@
 \alias{networkVis}
 \title{networkVis}
 \usage{
-networkVis(result, pCut = 0.05)
+networkVis(result, pCut = 0.05, nodeSizeBreak = c(pCut, pCut/5, pCut/50),
+  edgeTypeBreak = c(pCut, pCut/5, pCut/50))
 }
 \arguments{
 \item{result}{the result of TF pairs identification, can be the result of \code{\link{differentialAnalysis}} or \code{\link{correlationAnalysis}}.}
 
 \item{pCut}{the p value cutoff for genes used in network visualization}
+
+\item{nodeSizeBreak}{the p value breaks for node size in network. Currently only three breaks were allowed.}
+
+\item{edgeTypeBreak}{the p value breaks for edge type in network. Currently only three breaks were allowed.}
 }
 \description{
 A function to perform functional TF network visualization

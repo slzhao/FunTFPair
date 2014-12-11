@@ -4,20 +4,26 @@
 \title{prepareGeoData}
 \usage{
 prepareGeoData(GEO = NULL, destdir = getwd(),
-  geneSymColumnName = "Gene Symbol")
+  geneSymColumnName = "Gene Symbol", id2geneSymPkg)
 }
 \arguments{
 \item{GEO}{the GEO ID.}
 
 \item{destdir}{indicate the path to download the files.}
 
-\item{geneSymColumnName}{indicate the column name for gene symbol, which will be used in ID converter For GSE data.}
+\item{geneSymColumnName}{indicate the column name in the annotation of the dataset for gene symbol, which will be used in ID converter For GSE data.}
+
+\item{id2geneSymPkg}{indicate an R annotation package name, which will be used in ID converter For GSE data. You should load the package by library function first.}
 }
 \description{
 A function to download GDS or GSE data and convert ID if needed.
 }
 \details{
-A function to download GDS or GSE data and convert ID if needed.
+Most of the GDS datasets were well organized so that geneSymColumnName and id2geneSymPkg parameters were not necessary for GDS dataset preparation. But the format of
+GSE datasets were different so that we need to convert their gene ID into gene symbol. We provided two methods in prepareGeoData function. If the gene symbol was in
+the dataset's annotation data, the user can set geneSymColumnName parameter as the column name of gene symbol in the annotation. If gene symbol was not in dataset's
+annotation, the user can set id2geneSymPkg parameter as the name of related R annotation package based on the platform and gene ID in expression data (You should load
+the package by library function first). For example, id2geneSymPkg should be set as "hugene10sttranscriptcluster.db" if platform GPL6244 (Affymetrix Human Gene 1.0 ST Array) was used.
 }
 \examples{
 dataMatrix<-prepareGeoData("GDS2213")

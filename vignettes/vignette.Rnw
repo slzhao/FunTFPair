@@ -1,11 +1,16 @@
 % \VignetteEngine{knitr::knitr} 
 % \VignetteIndexEntry{FunTFPair}
+% \VignettePackage{FunTFPair}
 \documentclass[12pt]{article}
 \textwidth 6.75in
 \textheight 9.5in
 \topmargin -.875in
 \oddsidemargin -.06in
 \evensidemargin -.06in
+
+<<style-knitr, eval=TRUE, echo=FALSE, results="asis">>=
+BiocStyle::latex()
+@
 
 \usepackage{hyperref}
 
@@ -16,35 +21,48 @@
 }
 
 \begin{document}
-\title{Introduction for FunTFPair package}
+\title{Introduction to FunTFPair package}
 \maketitle
+\newpage
 \tableofcontents
-
+\newpage
 <<setting, echo=FALSE, cache=T>>=
 options(width=58)
 @
 
 \section{Introduction}
-Summary: Transcription factors (TFs) are fundamental regulators of gene expression and generally function in a complex and cooperative manner. Identifying context-dependent cooperative TFs is essential for understanding how cells respond to environmental change. The huge amount of various omics data currently available, providing genome-wide physical binding and functional effect information about transcription, holds a great opportunity to study TF cooperativity. Here we developed an R package, FunTFPair, which provides an easy and powerful way to identify condition-specific TF pairs by integrating transcription factor binding sites from ENCODE and gene expression profiles from GEO. Users only need to provide GEO ID that they are interested in. FunTFPair will automatically retrieve the expression profiles of the input GEO ID, get TF targets from ENCODE, and identify TF pairs whose common targets show statistically significant differences under changed experimental conditions or exhibit coordinated transcription in a specific condition. The functional TF pairs and their relative importance will be reported in a TF cooperation network. Two datasets from GEO are used as examples to demonstrate the usage and the reliability of the package.
+Summary: Transcription factors (TFs) are fundamental regulators of gene expression and generally function in a complex and cooperative manner. Identifying context-dependent cooperative TFs is essential for understanding how cells respond to environmental change. The huge amount of various omics data currently available, providing genome-wide physical binding and functional effect information about transcription, holds a great opportunity to study TF cooperativity. Here we developed an R package, FunTFPair, which provides an easy and powerful way to identify condition-specific TF pairs by integrating transcription factor binding sites from ENCODE and gene expression profiles from GEO. Users only need to provide the GEO ID that they are interested in. FunTFPair will automatically retrieve the expression profiles of the input GEO ID, get TF targets from ENCODE, and identify TF pairs whose common targets show statistically significant differences under changed experimental conditions or exhibit coordinated transcription in a specific condition. The functional TF pairs and their relative importance will be reported in a TF cooperation network. Two datasets from GEO are used as examples to demonstrate the usage and reliability of the package.
 
 
-Availability and Implementation: FunTFPair is implemented in R language.  The source code is provided at https://github.com/slzhao/FunTFPair. A more detailed vignette is also released along the package.
+Availability and Implementation: FunTFPair is implemented in the R language.  The source code is provided at https://github.com/slzhao/FunTFPair. A more detailed vignette is also released along with the package.
 
 \section{Functions in the package}
 \begin{itemize}
   \item \emph{prepareGeoData}: A function to download GDS or GSE data and convert ID if needed;
   \item \emph{differentialAnalysis}: A function to perform differential analysis and then find the enrichment of target genes;
-  \item \emph{correlationAnalysis}: A function to perform correlation analysis for expression data, to see if the shared targets of two tf were significantly changed between two conditions;
+  \item \emph{correlationAnalysis}: A function to perform correlation analysis for expression data, to see if the shared targets of two TF were significantly changed between two conditions;
   \item \emph{networkVis}: A function to perform functional TF network visualization;
 \end{itemize}
 
-
-\section{Example for differential analysis based functional TF pairs identification}
-Here we used one dataset (GDS2213) profiles gene expression of HepG2 cells treated by 5-aza-2'-deoxycytidine (5-aza-dC), trichostatin A (TSA) or both, as an example of differential analysis-based functional TF pairs identification. The gene expression profiles under three kinds of treatment were compared with those in the control group, respectively. As a result, 24 TF pairs, involving 8 TFs,  were identified to be functionally important under the treatment of 5-aza-dC, which inhibit DNA methylation. Consistently, most of TFs has been reported to be influenced by DNA methylation. More interestingly, HDAC2, an important histone deacetylase, joined the functional TF network when TSA, inhibitor of histone decetylation, was added.
-
-<<differentialExample, tidy=TRUE,cache=TRUE,message=FALSE,results='hide'>>=
+\section{Transcription factor pairs dataset from ENCODE project}
+FunTFPair package uses the transcription factor pairs dataset from ENCODE project, which contains 115 transcription factors and 4655 pairs in 12 cell lines. You can find them in the variable \emph{pairs2TargetRemDup}. FunTFpair package will use it to find functional TF pairs in a specified condition.
+<<TFPairData, tidy=TRUE,message=FALSE>>=
+#dataset in pairs2TargetRemDup variable
 library(FunTFPair)
-#Download GEO dataset
+str(pairs2TargetRemDup[,1:3])
+unique(pairs2TargetRemDup$Cell.line)
+@
+If you are only interesed in TF pairs in one specified cell line, you can select part of the \emph{pairs2TargetRemDup} variable and use it in the analysis functions.
+<<TFPairDataSelect, tidy=TRUE>>=
+#select TF pairs in HEPG2 cell line. Then you can use tfPairsUsed variable in analysis function.
+tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup$Cell.line=="HEPG2"),]
+@
+
+\section{Example of differential analysis-based functional TF pair identification}
+Here we used one dataset (GDS2213) for gene expression of HepG2 cells treated by 5-aza-2'-deoxycytidine (5-aza-dC), trichostatin A (TSA), or both, as an example of differential analysis-based functional TF pair identification. The gene expression profiles under three kinds of treatments were compared with those in the control group, respectively. As a result, 24 TF pairs, involving 8 TFs,  were identified to be functionally important under the treatment of 5-aza-dC, which inhibits DNA methylation. Consistently, most TFs have been reported to be influenced by DNA methylation. More interestingly, HDAC2, an important histone deacetylase, joined the functional TF network when TSA, an inhibitor of histone decetylation, was added.
+
+<<differentialExample, tidy=TRUE,cache=T,message=FALSE,results='hide'>>=
+#Download GEO dataset. The experiment design will be printed.
 dataMatrix<-prepareGeoData(GEO="GDS2213")
 #Choose the TF pairs in HEPG2 cells
 tfPairsUsed<-pairs2TargetRemDup[which(pairs2TargetRemDup[,3]=="HEPG2"),]
@@ -56,10 +74,10 @@ enrichTargetResultNetwork1<-networkVis(enrichTargetResult[[1]])
 enrichTargetResultNetwork3<-networkVis(enrichTargetResult[[3]])
 @
 
-Here the size of nodes indicated the importance of the TF in the cooprative network; while the width of the edges between pairs indicated the association between two TFs, which is the negative log 10 p value for the enrichement of shared targets in significantly changed genes.
+Here the size of nodes indicated the importance of the TF in the cooprative network, while the width of the edges between pairs indicated the association between two TFs, which is the negative log 10 p value for the enrichement of shared targets in significantly changed genes.
 
-\section{Example for correlation analysis based functional TF pairs identification}
-You can also use \emph{correlationAnalysis} function to perform correlation analysis based functional TF pairs identification. THe example codes can be viewed by following R codes.
+\section{Example of correlation analysis-based functional TF pairs identification}
+You can also use the \emph{correlationAnalysis} function to perform correlation analysis-based functional TF pair identification. The example codes can be viewed with the following R codes.
 <<correlationExample, tidy=TRUE,eval=FALSE>>=
 example(correlationAnalysis,run.dontrun=TRUE)
 @

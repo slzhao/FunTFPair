@@ -51,15 +51,21 @@ performLimma<-function(x,groups,contrasts,LogC) {
 ##' 
 ##' A function to download GDS or GSE data and convert ID if needed.
 ##' 
-##' A function to download GDS or GSE data and convert ID if needed.
+##' Most of the GDS datasets were well organized so that geneSymColumnName and id2geneSymPkg parameters were not necessary for GDS dataset preparation. But the format of 
+##' GSE datasets were different so that we need to convert their gene ID into gene symbol. We provided two methods in prepareGeoData function. If the gene symbol was in 
+##' the dataset's annotation data, the user can set geneSymColumnName parameter as the column name of gene symbol in the annotation. If gene symbol was not in dataset's 
+##' annotation, the user can set id2geneSymPkg parameter as the name of related R annotation package based on the platform and gene ID in expression data (You should load 
+##' the package by library function first). For example, id2geneSymPkg should be set as "hugene10sttranscriptcluster.db" if platform GPL6244 (Affymetrix Human Gene 1.0 ST Array) was used. 
 ##' 
 ##' @param GEO the GEO ID.
 ##' @param destdir indicate the path to download the files.
-##' @param geneSymColumnName indicate the column name for gene symbol, which will be used in ID converter For GSE data.
+##' @param geneSymColumnName indicate the column name in the annotation of the dataset for gene symbol, which will be used in ID converter For GSE data.
+##' @param id2geneSymPkg indicate an R annotation package name, which will be used in ID converter For GSE data. You should load the package by library function first.
 ##' @importFrom GEOquery getGEO Columns Table
+##' @importFrom annotate getSYMBOL
 ##' @export
 ##' @examples dataMatrix<-prepareGeoData("GDS2213")
-prepareGeoData<-function(GEO=NULL,destdir=getwd(),geneSymColumnName="Gene Symbol") {
+prepareGeoData<-function(GEO=NULL,destdir=getwd(),geneSymColumnName="Gene Symbol",id2geneSymPkg) {
 	if (length(grep("GDS",GEO)>0)) { #gds
 		gset <- getGEO(GEO=GEO,destdir=destdir)
 		gsetTable<-Table(gset)
@@ -90,13 +96,21 @@ prepareGeoData<-function(GEO=NULL,destdir=getwd(),geneSymColumnName="Gene Symbol
 		}
 		gset<-gset[[1]]
 		temp1<-exprs(gset)
-		if (geneSymColumnName %in% colnames(fData(gset))) {
+		if (!missing(id2geneSymPkg)) {
+#			library(id2geneSymPkg,character.only=T)
+			temp2<-getSYMBOL(row.names(temp1), id2geneSymPkg)
+		} else if (geneSymColumnName %in% colnames(fData(gset))) {
 			temp2<-as.character(fData(gset)[,geneSymColumnName])
 			names(temp2)<-as.character(fData(gset)[,c("ID")])
 		} else {
-			pkgInfo("Can't find '",geneSymColumnName,"' column for gene symbol converter. Please set geneSymColumnName parameter from the following column names:")
+			pkgInfo("Can't convert gene ID in this GSE dataset into gene symbol. Please set geneSymColumnName or id2geneSymPkg parameter. Or use help(prepareGeoData) for more details")
+			pkgInfo("Annotation of this dataset. If one of the columns reprezent gene symbol, set geneSymColumnName to the column name")
 			print(fData(gset)[sample(1:nrow(fData(gset)),5),])
-			stop()
+			pkgInfo("Platform and gene expression of this dataset. Find an R annotation package related to the platform and gene ID, set id2geneSymPkg to the package name")
+			print(annotation(gset))
+			print(temp1[sample(1:nrow(temp1),5),1:2])
+			warning("Can't convert gene ID in this GSE dataset into gene symbol. The raw gset was returned")
+			return(gset)
 		}
 
 		#remove all NA probes
@@ -170,7 +184,7 @@ differentialAnalysis<-function(x,groups,contrasts,LogC=NULL,pairs2Target=pairs2T
 ##' }
 enrichTarget<-function(limmaResult,pairs2Target=pairs2TargetRemDup,pCut=0.05,fCut=log2(1.5)) {
 	enrichResultList<-list()
-	cat(paste0("Threre are ",length(limmaResult)," comparasions in limmaresult:\n"))
+	cat(paste0("Threre are ",length(limmaResult)," comparasions in limma result:\n"))
 	for (i in 1:length(limmaResult)) {
 		allGenes<-toupper(row.names(limmaResult[[i]]))
 		sigGenes<-toupper(allGenes[which(abs(limmaResult[[i]][,1])>=fCut & limmaResult[[i]][,5]<=pCut)])
@@ -181,36 +195,40 @@ enrichTarget<-function(limmaResult,pairs2Target=pairs2TargetRemDup,pCut=0.05,fCu
 		temp<-apply(pairs2Target[,1:3],1,function(x) paste(x,collapse="_"))
 		row.names(resultEnrich)<-temp
 		
-		pb <- txtProgressBar(min = 1, max = nrow(pairs2Target), style = 3)
-		for (x in 1:nrow(pairs2Target)) {
-			setTxtProgressBar(pb, x)	
-			nUsed<-NULL
-			pvalue<-NULL
-			for (z in c("shareTargets","tf1OnlyTargets","tf2OnlyTargets")) {
-				targets<-strsplit(pairs2Target[x,z]," ")[[1]]
-				mPhyper<-length(intersect(targets,allGenes))
-				qPhyper<-length(intersect(targets,sigGenes))
-				nPhyper<-length(allGenes)-mPhyper
-				kPhyper<-length(sigGenes)
-				nUsed<-c(nUsed,mPhyper,qPhyper)
-				pvalue<-c(pvalue,phyper(qPhyper, mPhyper, nPhyper, kPhyper, lower.tail = F))
+		if (length(sigGenes)>=30) {
+			pb <- txtProgressBar(min = 1, max = nrow(pairs2Target), style = 3)
+			for (x in 1:nrow(pairs2Target)) {
+				setTxtProgressBar(pb, x)	
+				nUsed<-NULL
+				pvalue<-NULL
+				for (z in c("shareTargets","tf1OnlyTargets","tf2OnlyTargets")) {
+					targets<-strsplit(pairs2Target[x,z]," ")[[1]]
+					mPhyper<-length(intersect(targets,allGenes))
+					qPhyper<-length(intersect(targets,sigGenes))
+					nPhyper<-length(allGenes)-mPhyper
+					kPhyper<-length(sigGenes)
+					nUsed<-c(nUsed,mPhyper,qPhyper)
+					pvalue<-c(pvalue,phyper(qPhyper, mPhyper, nPhyper, kPhyper, lower.tail = F))
+				}
+				for (y in c(3,5)) {
+					mPhyper<-nUsed[1]+nUsed[y]
+					qPhyper<-nUsed[2]+nUsed[y+1]
+					nPhyper<-length(allGenes)-mPhyper
+					kPhyper<-length(sigGenes)
+					nUsed<-c(nUsed,mPhyper,qPhyper)
+					pvalue<-c(pvalue,phyper(qPhyper, mPhyper, nPhyper, kPhyper, lower.tail = F))
+				}
+				resultEnrich[x,]<-c(nUsed,pvalue)
 			}
-			for (y in c(3,5)) {
-				mPhyper<-nUsed[1]+nUsed[y]
-				qPhyper<-nUsed[2]+nUsed[y+1]
-				nPhyper<-length(allGenes)-mPhyper
-				kPhyper<-length(sigGenes)
-				nUsed<-c(nUsed,mPhyper,qPhyper)
-				pvalue<-c(pvalue,phyper(qPhyper, mPhyper, nPhyper, kPhyper, lower.tail = F))
-			}
-			resultEnrich[x,]<-c(nUsed,pvalue)
+			cat("\n")
+			resultEnrich[,11]<-p.adjust(resultEnrich[,11],method="BH")
+			resultEnrich[,12]<-p.adjust(resultEnrich[,12],method="BH")
+			resultEnrich[,13]<-p.adjust(resultEnrich[,13],method="BH")
+			resultEnrich[,14]<-p.adjust(resultEnrich[,14],method="BH")
+			resultEnrich[,15]<-p.adjust(resultEnrich[,15],method="BH")
+		} else { #very few significant genes
+			cat(paste0("Very few significant genes: ",length(sigGenes), ". Will not perform analysis for this comparasion\n"))
 		}
-		cat("\n")
-		resultEnrich[,11]<-p.adjust(resultEnrich[,11],method="BH")
-		resultEnrich[,12]<-p.adjust(resultEnrich[,12],method="BH")
-		resultEnrich[,13]<-p.adjust(resultEnrich[,13],method="BH")
-		resultEnrich[,14]<-p.adjust(resultEnrich[,14],method="BH")
-		resultEnrich[,15]<-p.adjust(resultEnrich[,15],method="BH")
 		enrichResultList[[i]]<-resultEnrich
 	}
 	return(enrichResultList)
@@ -307,7 +325,10 @@ correlationAnalysis<-function(expression,pairs2Target=pairs2TargetRemDup,n=300) 
 ##' 
 ##' @param result the result of TF pairs identification, can be the result of \code{\link{differentialAnalysis}} or \code{\link{correlationAnalysis}}.
 ##' @param pCut the p value cutoff for genes used in network visualization
+##' @param nodeSizeBreak the p value breaks for node size in network. Currently only three breaks were allowed.
+##' @param edgeTypeBreak the p value breaks for edge type in network. Currently only three breaks were allowed.
 ##' @import igraph
+##' @importFrom RColorBrewer brewer.pal
 ##' @export
 ##' @examples \dontrun{
 ##' dataMatrix<-prepareGeoData(GEO="GDS2213")
@@ -319,7 +340,11 @@ correlationAnalysis<-function(expression,pairs2Target=pairs2TargetRemDup,n=300) 
 ##' #Show the network for contrast 3, which is different from contrast 1
 ##' enrichTargetResultNetwork3<-networkVis(enrichTargetResult[[3]])
 ##' }
-networkVis<-function(result,pCut=0.05) {
+networkVis<-function(result,pCut=0.05,nodeSizeBreak=c(pCut,pCut/5,pCut/50),edgeTypeBreak=c(pCut,pCut/5,pCut/50)) {
+	if (all(is.na(result))) {
+		pkgInfo("Empty result. Please check your paramter in differentialAnalysis or correlationAnalysis function.")
+		return()
+	}
 	if (ncol(result)>10) { #differentialAnalysis result
 		resultUsed<-as.data.frame(result[,c(11,12,13)])
 	} else { #correlationAnalysis result
@@ -340,6 +365,10 @@ networkVis<-function(result,pCut=0.05) {
 		temp2<-sapply(split(resultUsed,as.character(resultUsed[,2]),drop = FALSE),function(x) max(x[,6]))
 		nodesP<-sapply(split(c(temp1,temp2),names(c(temp1,temp2))),max)
 		nodesP<-nodesP[nodesP<=pCut]
+		if (length(nodesP)==0) {
+			pkgInfo("Empty result. Set pCut parameter larger?")
+			return()
+		}
 		nodesP<--log10(nodesP)
 		temp1<-table(resultUsed[,1])
 		temp1<-temp1[names(nodesP)]
@@ -374,14 +403,28 @@ networkVis<-function(result,pCut=0.05) {
 	}
 
 	#networkVis
-#	require(igraph)
-	g <- graph.data.frame(networkList$network, directed=F, vertices=cbind(row.names(networkList$nodes),networkList$nodes))
-#	V(g)$size<-data2range(as.numeric(V(g)$"nodesP"),5,20)
-	cateNodeSize<-data2cate(as.numeric(V(g)$"nodesP"),cate=c(5,10,15,20))
-	V(g)$size<-cateNodeSize$cate
-	E(g)$width<-data2range(E(g)$"p.shareTargets",1,5)
-	plot.igraph(g,vertex.frame.color=NA,vertex.label.degree=pi,vertex.label.dist=1)
-#	legend("topright",legend=cateNodeSize$levels,bty="n",pch=16,cex=1:4)
+	if (nrow(networkList[[2]])==0) { #empty network
+		warning("Empty network. Set pCut parameter larger?")
+	} else {
+		g <- graph.data.frame(networkList$network, directed=F, vertices=cbind(row.names(networkList$nodes),networkList$nodes))
+		if (length(nodeSizeBreak)!=3 |length(edgeTypeBreak)!=3) {
+			warning(paste0("Only 3 breaks were allowed for nodeSizeBreak and edgeTypeBreak"))
+			nodeSizeBreak<-nodeSizeBreak[1:3]
+			edgeTypeBreak<-edgeTypeBreak[1:3]
+		}
+		cateNodeSize<-data2cate(as.numeric(V(g)$"nodesP"),breaks=c(-log10(nodeSizeBreak),Inf),cate=c(5,10,20))
+		V(g)$size<-cateNodeSize$cate
+		color<-brewer.pal(3,"Greens")[3]
+		E(g)$color<-color
+		E(g)$lty<-data2cate(as.numeric(E(g)$"p.shareTargets"),breaks=c(-log10(edgeTypeBreak),Inf),cate=3:1)$cate
+		
+		E(g)$width<-2
+		plot.igraph(g,vertex.frame.color=NA,vertex.label.degree=pi,vertex.label.dist=1)
+		nodeSizeBreakLegendText<-paste0(c(paste0(nodeSizeBreak[-1],"<"),""),"p",paste0("<",nodeSizeBreak))
+		edgeTypeBreakLegendText<-paste0(c(paste0(edgeTypeBreak[-1],"<"),""),"p",paste0("<",edgeTypeBreak))
+		legend(x=0.55,y=1.55,legend=c(edgeTypeBreakLegendText),col=color,bty="n",lwd=2,lty=3:1)
+		legend(x=-1.55,y=1.55,legend=c(nodeSizeBreakLegendText),pch=16,pt.cex=1:3,bty="n",col="lightblue")
+	}
 	return(networkList)
 }
 
@@ -390,9 +433,6 @@ data2range<-function(x,minNew=0,maxNew=1) {
 }
 
 data2cate<-function(x,breaks,cate) {
-	if (missing(breaks)) {
-		breaks<-c(min(x),min(x)+(max(x)-min(x))*1/4,min(x)+(max(x)-min(x))*2/4,min(x)+(max(x)-min(x))*3/4,max(x))
-	}
 	temp<-cut(x,breaks=breaks,include.lowest=T)
 	result<-cate[temp]
 	return(list(cate=result,levels=levels(temp)))
